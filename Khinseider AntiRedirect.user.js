@@ -6,8 +6,8 @@
 // @author       realcoloride
 // @match        https://downloads.khinsider.com/game-soundtracks/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=khinsider.com
-// @updateURL    https://
-// @downloadURL  https://
+// @updateURL    https://github.com/realcoloride/khinseiderantiredirect/raw/main/Khinseider%20AntiRedirect.user.js
+// @downloadURL  https://github.com/realcoloride/khinseiderantiredirect/raw/main/Khinseider%20AntiRedirect.user.js
 // @grant        none
 // ==/UserScript==
 
