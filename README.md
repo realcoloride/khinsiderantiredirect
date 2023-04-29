@@ -7,6 +7,11 @@ Check out their website, [its awesome](https://downloads.khinsider.com/)!
 # How to Install 
 Download the [Tampermonkey](https://www.tampermonkey.net/) extension on any browser, then install the script directly from source here or by clicking on [GreasyFork](https://greasyfork.org/scripts/465149-khinseider-antiredirect).
 
+# Demonstration
+![demo](https://user-images.githubusercontent.com/108619637/235319355-79414fd9-639f-4288-9e53-8f3e4d9fdff3.gif)
+
+This small gif is a comparison of with the extension and without.
+
 # Contribute
 Feel free to open an [Issue](https://github.com/realcoloride/khinseiderantiredirect/issues) to suggest something, give feedback or other.
 
