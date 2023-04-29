@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         Khinsider AntiRedirect
 // @namespace    https://downloads.khinsider.com/game-soundtracks/*
-// @version      0.2
-// @description  Makes khinseider stop redirecting you when clicking download on a soundtrack. Also directly downloads the soundtracks instead of redirecting and includes a right click save as directly from the album's page.
+// @version      0.21
+// @description  Makes khinsider stop redirecting you when clicking download on a soundtrack. Also directly downloads the soundtracks instead of redirecting and includes a right click save as directly from the album's page.
 // @author       realcoloride
+// @license      MIT
 // @match        https://downloads.khinsider.com/game-soundtracks/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=khinsider.com
-// @license      MIT
+// @updateURL    https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
+// @downloadURL  https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
 // @grant        none
 // ==/UserScript==
 
@@ -27,7 +29,6 @@
         'songlist_header',
         'songlist_footer'
     ]
-    const spinnerHTML = `<img class="loadingSpinner" src="/images/spinner.svg">`;
 
     function extractUrl(htmlString) {
         const regex = /<audio\s+id="audio"\s+.*?\bsrc="(.*?)"/;
