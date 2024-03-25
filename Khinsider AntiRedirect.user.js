@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khinsider AntiRedirect
 // @namespace    https://downloads.khinsider.com/game-soundtracks/*
-// @version      0.21
+// @version      0.3
 // @description  Makes khinsider stop redirecting you when clicking download on a soundtrack. Also directly downloads the soundtracks instead of redirecting and includes a right click save as directly from the album's page.
 // @author       realcoloride
 // @license      MIT
@@ -9,7 +9,9 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=khinsider.com
 // @updateURL    https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
 // @downloadURL  https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
-// @grant        none
+// @connect      vgmdownloads.com
+// @connect      vgmsite.com
+// @grant        GM.xmlHttpRequest
 // ==/UserScript==
 
 (function() {
@@ -36,12 +38,86 @@
         return match ? match[1] : null;
     }
 
+    function getButtonFromHref(hrefElement) {
+        return hrefElement.querySelector("i");
+    }
+
+    async function downloadFile(button, url, filename) {
+        setButtonToLoading(button);
+
+        function finish() {
+            setButtonToDownloadIcon(button);
+            if (button.disabled) button.disabled = false
+        }
+ 
+        GM.xmlHttpRequest({
+            method: 'GET',
+            headers: {},
+            url: url,
+            responseType: 'blob',
+            onload: async function(response) {
+                if (response.status == 403) { 
+                    alert("Download failed, please try again later or refresh the page."); 
+                    return; 
+                }
+                
+                const blob = response.response;
+                const link = document.createElement('a');
+ 
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', filename);
+                link.click();
+ 
+                URL.revokeObjectURL(link.href);
+                
+                setButtonToDownloadIcon(button);
+                button.disabled = false;
+
+                finish();
+            },
+            onerror: function(error) {
+                console.error('Download Error:', error);
+                alert("Download failed, please try again later or refresh the page."); 
+                
+                finish();
+            }
+        });
+    }
+
+    let stylesInjected = false;
+
+
+    function loadCSS(css) {
+        const style = document.createElement('style');
+        style.innerHTML = css;
+        document.head.appendChild(style);
+    }
+
+    function injectStyles() {
+        if (stylesInjected) return;
+        stylesInjected = true;
+
+        loadCSS(`
+            @keyframes rotating {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }`);
+    }
+
+    function setButtonToLoading(button) {
+        button.innerText = "loop";
+        button.setAttribute("style", "animation: 2s linear infinite rotating");
+    }
+    function setButtonToDownloadIcon(button) {
+        button.innerText = "get_app";
+        button.setAttribute("style", "");
+    }
+
     function inject(trackElement) {
         const playlistDownloadSong = trackElement.getElementsByClassName('playlistDownloadSong')[0];
         const hrefElement = playlistDownloadSong.getElementsByTagName('a')[0];
 
         const songLink = hrefElement.href;
-        const eventListeners = hrefElement.eventListeners;
 
         // dispatch click event
         hrefElement.removeAttribute('href');
@@ -60,42 +136,11 @@
             hrefElement.setAttribute('href', url);
             hrefElement.setAttribute('download', '');
 
-            hrefElement.addEventListener('click', function(event) {
+            hrefElement.addEventListener('click', async function(event) {
                 event.preventDefault();
 
-                // create a temporary audio element
-                const audio = document.createElement('audio');
-                audio.src = url;
-
-                // add the "preload" attribute to start loading the audio file
-                audio.setAttribute('preload', 'auto');
-                audio.type = 'audio/mpeg';
-
-                // add an event listener for when the audio file is loaded
-                audio.addEventListener('loadeddata', function() {
-                    // create a temporary link element
-                    const link = document.createElement('a');
-
-                    // set the "href" attribute to the audio file's blob URL
-                    link.href = URL.createObjectURL(new Blob([audio.src], { type: audio.type }));
-
-                    // set the "download" attribute to force download
-                    const filename = url.substring(url.lastIndexOf('/')+1).replace(/%20/g, " ");
-                    link.setAttribute('download', filename);
-
-                    // add the link to the document body
-                    document.body.appendChild(link);
-
-                    // trigger a click event on the link
-                    link.click();
-
-                    // remove the link and audio elements from the document body
-                    document.body.removeChild(link);
-                    document.body.removeChild(audio);
-                });
-
-                // add the audio element to the document body
-                document.body.appendChild(audio);
+                const filename = decodeURIComponent(url.substring(url.lastIndexOf('/')+1).replace(/%20/g, " "));
+                await downloadFile(getButtonFromHref(hrefElement), url, filename);
             });
 
             hrefElement.hidden = false;
@@ -111,6 +156,7 @@
         }
     }
 
+    injectStyles();
     for (let i = 0; i < songElements.length; i++) {
         const trackElement = songElements[i];
         let passing = true;
