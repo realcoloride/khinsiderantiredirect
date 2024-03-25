@@ -16,4 +16,4 @@ This small gif is a comparison of with the extension and without.
 Feel free to open an [Issue](https://github.com/realcoloride/khinsiderantiredirect/issues) to suggest something, give feedback or other.
 
 # License
-❤️ Distributed with the MIT License. (real)coloride - 2023
+❤️ Distributed with the MIT License. (real)coloride - 2023-2024
