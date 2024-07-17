@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khinsider AntiRedirect
 // @namespace    https://downloads.khinsider.com/game-soundtracks/*
-// @version      0.3
+// @version      0.4
 // @description  Makes khinsider stop redirecting you when clicking download on a soundtrack. Also directly downloads the soundtracks instead of redirecting and includes a right click save as directly from the album's page.
 // @author       realcoloride
 // @license      MIT
@@ -11,6 +11,7 @@
 // @downloadURL  https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
 // @connect      vgmdownloads.com
 // @connect      vgmsite.com
+// @connect      vgmtreasurechest.com
 // @grant        GM.xmlHttpRequest
 // ==/UserScript==
 
