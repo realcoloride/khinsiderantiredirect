@@ -1,21 +1,22 @@
 // ==UserScript==
 // @name         Khinsider AntiRedirect
 // @namespace    https://downloads.khinsider.com/game-soundtracks/*
-// @version      0.4
+// @version      0.5
 // @description  Makes khinsider stop redirecting you when clicking download on a soundtrack. Also directly downloads the soundtracks instead of redirecting and includes a right click save as directly from the album's page.
 // @author       realcoloride
 // @license      MIT
 // @match        https://downloads.khinsider.com/game-soundtracks/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=khinsider.com
-// @updateURL    https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
-// @downloadURL  https://github.com/realcoloride/khinsiderantiredirect/raw/main/Khinsider%20AntiRedirect.user.js
 // @connect      vgmdownloads.com
 // @connect      vgmsite.com
 // @connect      vgmtreasurechest.com
 // @grant        GM.xmlHttpRequest
+// @downloadURL https://update.greasyfork.org/scripts/465151/Khinsider%20AntiRedirect.user.js
+// @updateURL https://update.greasyfork.org/scripts/465151/Khinsider%20AntiRedirect.meta.js
 // ==/UserScript==
 
 (function() {
+    const FLAC_DOWNLOAD_COLOR = "#2bb7c7";
     const songlist = document.getElementById('songlist');
     let pass = true;
 
@@ -114,9 +115,20 @@
         button.setAttribute("style", "");
     }
 
+    async function doesSongUrlExist(url) {
+        try {
+            return (await GM.xmlHttpRequest({method: "GET", url})).status == 200;
+        } catch (error) {
+            return false;
+        }
+    }
+
     function inject(trackElement) {
         const playlistDownloadSong = trackElement.getElementsByClassName('playlistDownloadSong')[0];
         const hrefElement = playlistDownloadSong.getElementsByTagName('a')[0];
+        setButtonToLoading(getButtonFromHref(hrefElement));
+
+        playlistDownloadSong.style = "display: flex";
 
         const songLink = hrefElement.href;
 
@@ -124,35 +136,51 @@
         hrefElement.removeAttribute('href');
 
         hrefElement.style.cursor = 'pointer';
-        hrefElement.setAttribute('alt', 'Download track');
+        hrefElement.setAttribute('alt', 'Download track (MP3)');
+        hrefElement.setAttribute('title', 'Download track (MP3)');
 
         const xhr = new XMLHttpRequest();
         xhr.open("GET", songLink);
         xhr.send();
         xhr.responseType = "text";
 
-        hrefElement.hidden = true;
+        function prepareHrefElement(url) {
+            const newHrefElement = hrefElement.cloneNode(true);
+            setButtonToDownloadIcon(getButtonFromHref(newHrefElement));
+            newHrefElement.setAttribute('href', url);
+            newHrefElement.setAttribute('download', '');
 
-        function finish(url) {
-            hrefElement.setAttribute('href', url);
-            hrefElement.setAttribute('download', '');
-
-            hrefElement.addEventListener('click', async function(event) {
+            newHrefElement.addEventListener('click', async function(event) {
                 event.preventDefault();
 
                 const filename = decodeURIComponent(url.substring(url.lastIndexOf('/')+1).replace(/%20/g, " "));
-                await downloadFile(getButtonFromHref(hrefElement), url, filename);
+                await downloadFile(getButtonFromHref(newHrefElement), url, filename);
             });
 
-            hrefElement.hidden = false;
+            playlistDownloadSong.appendChild(newHrefElement);
+
+            return newHrefElement;
         }
 
-        xhr.onload = () => {
+        async function finish(url) {
+            prepareHrefElement(url);
+
+            const flacUrl = url.replace(/\.mp3$/, ".flac");
+            if (!await doesSongUrlExist(flacUrl)) return;
+
+            const flacHrefElement = prepareHrefElement(flacUrl);
+            flacHrefElement.setAttribute('alt', 'Download track (FLAC)');
+            flacHrefElement.setAttribute('title', 'Download track (FLAC)');
+            getButtonFromHref(flacHrefElement).style = `color:${FLAC_DOWNLOAD_COLOR}`;
+        }
+
+        xhr.onload = async () => {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 const body = xhr.response;
                 const url = extractUrl(body);
 
                 finish(url);
+                hrefElement.remove();
             } else console.log('Something errored with the request');
         }
     }
